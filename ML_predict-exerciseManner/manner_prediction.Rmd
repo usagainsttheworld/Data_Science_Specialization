@@ -1,0 +1,61 @@
+#Which exercise did they do?
+=============================================
+The datasets are from a study with 5 classes (sitting-down, standing-up, standing, walking, and sitting) collected on 8 hours of activities of 4 healthy subjects. The goal of this project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. 
+
+##Load Data
+
+```{r}
+setwd("~/Coursera/ML_predict-exerciseManner")
+training_raw<-read.table("pml-training.csv", sep=",", na.string=c("NA",""), header=T)
+testing_raw<-read.csv("pml-training.csv", sep=",", na.string=c("NA",""), header=T)
+```
+
+##Cleaning data
+
+```{r}
+#For the training data set, many variables contain lots of NAs (19216 NAs out of 19622 observations in the training data set). The number of observations for each class are 5580, 3797 ,3422 ,3216, and 3607 each. so it is unlikely that wether those variables are NAs or not is related to which class of exercise did they do. So all columns contains NAs are exluded from the datasets for the following analysis.
+training_noNA<-training_raw[,sapply(training_raw, Negate(anyNA)), drop=F]
+#Columns having unique values including "X", "user_name", "raw_timestamp_part_1","raw_timestamp_part_2","cvtd_timestamp"       "new_window" ,"num_window" are not related to which class of exercise did they do, thus are removed from the datasets. 
+training<-training_noNA[,8:ncol(build_noNA)]
+#Check for zero covariates, all variables are not zero covariates so no change should apply
+nzv<-nearZeroVar(training, saveMetrics=T)
+dim(training)
+
+#Cleaning data for testing_raw data set
+testing_noNA<-testing_raw[,sapply(testing_raw, Negate(anyNA)), drop=F]
+testing_build<-testing_noNA[,8:ncol(build_noNA)]
+
+#Split the test set into validation set and test set half half, so there will be 50% training, 25% testing, and 25% validation
+inbuild<-createDataPartition(y=testing_build$class, p=.5, list=F)
+testing<-testing_build[inbuild,]
+validition<-testing_build[-inbuild,]
+dim(testing); dim(validition)
+```
+
+
+##program running for over 40 min using a Mac 1.86 GHz Intel Core 2 Duo...!!!!! 
+
+```{r}
+library(ggplot2)
+library(caret)
+library(dplyr)
+set.seed(123)
+mod1<-train(training$class~., method="rf", data=training)
+mod1$finalModel
+
+
+print(system.time(train(training$class~., method="rf", data=training)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
