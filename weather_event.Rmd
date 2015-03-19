@@ -1,0 +1,68 @@
+TORNADO Is The Most Deadly Event Whlie FLOOD Is The No.1 Economic Killer
+===============================================
+##Synopsis
+The study was based on data from NOAA Storm Database and presents data analysis on the effects of different types of weather events to population health and economy. During the analysis, we observed that Tornado is the most dangerous events, causing lots of injuries and even fatal sometimes. We have also noticed that Flood shown to be the most costly weather events, causing $15 billions damages during the last 60 years.
+
+##Data Processing 
+
+Load the CSV file into R 
+
+```{r}
+setwd("~/Desktop/coursera-rep/assessment2")
+mydata<-read.csv("repdata-data-StormData.csv")
+names(mydata)<-tolower(names(mydata))
+```
+
+To get total number of dealth for each event and arrange them in descending order, then store it in a new variable called "total_fatality_event". Also get total number of injury for each event and arrange them in descending order, then store it in a new variable called "total_injury_event"
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(car)
+total_fatality_event<-mydata %>%
+        group_by(evtype) %>%
+        summarize(tf=sum(fatalities)) %>%
+        arrange(desc(tf))
+total_injury_event<-mydata %>%
+        group_by(evtype) %>%
+        summarize(ti=sum(injuries)) %>%
+        arrange(desc(ti))
+```
+
+The property damage expenses will be calculated using two variables in the data set: "propdmg", and "propexp". Then same calculation was applied to crop damage expenses. mydata$propdmgexp
+
+```{r}
+#To see which exponent are used for both variables
+summary(mydata$propdmgexp)
+summary(mydata$cropdmgexp)
+#To transfer the exponent factor into power values which can be applied to damage variable for calculation, a translator function was at first created and used to loop through the data set. This process took a very long time (~2 hours) although the final result was correct. So I further investigated for other approaches and found a much easier and quicker way and that's by using recode() function in car package.
+mydata$propdmgexp<-as.numeric(recode(as.character(mydata$propdmgexp), "''=0; '-'=0; '?'=0; '+'=0; '0'=1; '1'= 10; '2'=10^2; '3'=10^3; '4'=10^4; '5'=10^5; '6'=10^6; '7'=10^7; '8'=10^8; 'B'=10^9; 'h'=100; 'H'=100; 'K'=1000; 'm'=10^6; 'M'=10^6"))
+mydata$cropdmgexp<-as.numeric(recode(as.character(mydata$cropdmgexp), "''=0; '?'=0; '0'=1; '2'=10^2; 'B'=10^9; 'k'=1000; 'K'=1000;  'm'=10^6; 'M'=10^6"))
+#To calculate the total damage
+mydata<-mydata %>% mutate(totaldmg=mydata$propdmgexp*mydata$propdmg+mydata$cropdmgexp*mydata$cropdmg)
+total_dmg_event<-mydata %>%
+        group_by(evtype) %>%
+        summarize(td=sum(totaldmg)) %>%
+        arrange(desc(td))
+```
+
+##Results
+
+-Question1: Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+
+By using ggplot2, we present a bar plot of top 5 events causing Deaths and injury. 
+
+```{r}
+ggplot(total_fatality_event[1:5,], aes(evtype, tf)) + geom_bar(stat = "identity") + labs (title = "Top 5 types of events causing total number of death across the US") + labs (x = "Event type", y ="Total number of death")
+ggplot(total_injury_event[1:5,], aes(evtype, ti)) + geom_bar(stat = "identity") + labs (title = "Top 5 types of events causing total number of injury across the US") + labs (x = "Event type", y ="Total number of injury")
+```
+
+-Quenstion 2: Across the United States, which types of events have the greatest economic consequences?
+
+By using ggplot2, we present a bar plot of top 5 events causing economic damages. 
+
+```{r}
+ggplot(total_dmg_event[1:5,], aes(evtype, td)) + geom_bar(stat = "identity") + labs (title = "Top 5 types of events causing economic consequences across the US") + labs (x = "Event type", y ="Economic damages")
+```
+
+
