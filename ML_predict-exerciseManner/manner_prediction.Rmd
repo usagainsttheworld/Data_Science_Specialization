@@ -1,52 +1,67 @@
-#Which exercise did they do?
+Which exercise did they do?
 =============================================
 The datasets are from a study with 5 classes (sitting-down, standing-up, standing, walking, and sitting) collected on 8 hours of activities of 4 healthy subjects. The goal of this project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. 
 
-##Load Data
+##Load training data set
 
 ```{r}
 setwd("~/Coursera/ML_predict-exerciseManner")
 training_raw<-read.table("pml-training.csv", sep=",", na.string=c("NA",""), header=T)
-testing_raw<-read.csv("pml-training.csv", sep=",", na.string=c("NA",""), header=T)
 ```
 
 ##Cleaning data
 
+It's been noticed that in the training data set, many variables contain lots of NAs (19216 NAs out of 19622 observations). The number of observations for each class are 5580, 3797 ,3422 ,3216, and 3607 each. So it is unlikely that weather those variables are NAs or not is related to which exercise they did. As a result, all columns containing NAs are excluded from the data set for further analysis. Columns having unique values such as: "X", "user_name", "raw_timestamp_part_1","raw_timestamp_part_2","cvtd_timestamp", "new_window" ,"num_window" are also unrelated to exercise class, thus are removed from the data set as well. Zero covariates check was also performed and the results were negative for all variables so no changes applied. Then, the cleaned data set was split into two data sets: "mytrain" data set (75%) for training model and "mytest" data set (25%) for testing out of sample errors.
+
 ```{r}
-#For the training data set, many variables contain lots of NAs (19216 NAs out of 19622 observations in the training data set). The number of observations for each class are 5580, 3797 ,3422 ,3216, and 3607 each. so it is unlikely that wether those variables are NAs or not is related to which class of exercise did they do. So all columns contains NAs are exluded from the datasets for the following analysis. Columns having unique values including "X", "user_name", "raw_timestamp_part_1","raw_timestamp_part_2","cvtd_timestamp", "new_window" ,"num_window" are not related to which class of exercise did they do, thus are removed from the datasets. Check for zero covariates, all variables are not zero covariates so no change should apply
 library(ggplot2)
 library(caret)
 library(dplyr)
 library(randomForest)
-set.seed(123)
 training_noNA<-training_raw[,sapply(training_raw, Negate(anyNA)), drop=F]
 training<-training_noNA[,8:ncol(training_noNA)]
 nzv<-nearZeroVar(training, saveMetrics=T)
-dim(training)
-#Cleaning data for testing_raw data set.Split the test set into validation set and test set half half, so there will be 50% training, 25% testing, and 25% validation
-testing_noNA<-testing_raw[,sapply(testing_raw, Negate(anyNA)), drop=F]
-testing_build<-testing_noNA[,8:ncol(testing_noNA)]
-inbuild<-createDataPartition(y=testing_build$class, p=.5, list=F)
-testing<-testing_build[inbuild,]
-validition<-testing_build[-inbuild,]
-dim(testing); dim(validition)
+set.seed(123) #set seed 123 in order to repeat this analysis
+intrain<-createDataPartition(y=training$classe, p=.75, list=F)
+mytrain<-training[intrain,]
+mytest<-training[-intrain,]
+dim(mytrain); dim(mytest)
 ```
 
 ##Model building
 
+I decided to perform random forest model fitting on "mytrain" data set since it usually works well when data sets has lots of variables and gives a high accuracy. When train() function was at first applied for model fitting, it was running for hours. Then the approach was optimized  by setting the train control method as "cv" and with 3 folds instead of 10 folds (default). This time, excursion took only 30 min with 500 trees generated. Then, I futher investigated the time efficiency issue by reducing the number of trees to 50. As a result, the excursion time went down to only 5 mins. The error rate of my final approach (In sample error) is 1.3%. So the out of error rate is expected to be around 1%. Mac 1.86 GHz Intel Core 2 Duo was used for all analysis for this study. 
+
 ```{r}
-## First tried to perfored random forest model fitting on training data set, program running for hours. Then tried set train control method as "cv" with 3 folds instead of 10 folds (default). Excursion took about an hour with 500 trees generated with estimate error rate 0.01%. Next, I tried to reduce the number of trees to 50 and the excursion time went down to 10 mins with the error rate rise to 0.03%. Mac 1.86 GHz Intel Core 2 Duo was used for all analysis for this study. 
-mod1<-train(training$class~., method="rf", data=training, ntree=50, trControl = trainControl(method="cv"), number=3)
-mod1$finalModel
+modrf<-train(mytrain$classe~., method="rf", data=mytrain, ntree=50, trControl = trainControl(method="cv"), number=3)
+modrf$finalModel
 ```
 
 ##Cross validation
 
+Prediction on "mytest"" data set using the model we've trained. The out of error rate is 0.92%, as the accuracy of the trained model is 99.08%.
+
 ```{r}
-#Since the random forest model performs very well with 97% accuracy, the validation phase (for selecting approaches) was skiped for this study. Then, prediction was applied on validation data set to estimate the accuracy of the model. The prediction for the test set were correct in 100% of the cases.
-prediction<-predict(mod1, newdata=testing)
-confusionMatrix(prediction, testing$class)
+prediction<-predict(modrf, newdata=mytest)
+confusionMatrix(prediction, mytest$classe)
 ```
 
-##
+##Predict of the test cases
+
+```{r}
+#Load the test data set and predict the classe for each cases. Submit the results in respective files.
+testing<-read.table("pml-testing.csv", sep=",", na.string=c("NA",""), header=T)
+prediction<-predict(modrf, newdata=testing)
+prediction<-as.character(prediction)
+cat("The prediction of the 20 test cases are:", prediction)
+#To generat files for submission
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+pml_write_files(prediction)
+```
 
