@@ -1,0 +1,71 @@
+---
+output: pdf_document
+---
+#ToothGrowth Data Analyses
+By Ling Tian, Feb.2015
+
+##Load the ToothGrowth data and perform some basic explotory data analyses
+```{r}
+library(datasets)
+data(ToothGrowth)
+head(ToothGrowth)
+str(ToothGrowth)
+```
+Perform box-plot on data
+```{r}
+library(ggplot2)
+ToothGrowth$dose<-as.factor(ToothGrowth$dose)
+ggplot(ToothGrowth, aes(x=factor(dose), y=len, fill=factor(dose)))+geom_boxplot()+facet_grid(.~supp)+ggtitle("Analyzing ToothGrowth data")
+```
+For both OJ and VC, as the dose increases, the tooth length grows.
+
+##Basic summary of the data
+```{r}
+summary(ToothGrowth)
+```
+There are two treatment(OJ and VC),each treatment has three dose(0.5, 1, and 2)
+
+##Compare tooth growth by supp and dose
+###Caculate the confidence intervals
+```{r}
+mean_VC<-mean(ToothGrowth$len[1:30])
+mean_OJ<-mean(ToothGrowth$len[31:60])
+var_VC<-(sd(ToothGrowth$len[1:30]))^2
+var_OJ<-(sd(ToothGrowth$len[31:60]))^2
+q<-(((var_VC+var_OJ)/30)^2)/(((var_VC/30)^2+((var_OJ/30)^2))/29)
+t<-qt(0.975,q)##for 95% confidence intervals,2.5% on eath sides
+mean_OJ-mean_VC+c(-1,1)*t*sqrt(var_VC/30+var_OJ/30)
+```
+###Hypothesis test
+###H0: Suppement types have no effect on tooth length
+
+```{r}
+t.test(len~supp,data=ToothGrowth,paired=FALSE)
+```
+The condidence interval contains 0, so the difference between the two treatment is not significant.The p-value=0.06,which is bigger than 0.05, so we fail to reject the hypothesis.
+
+####H0:Suppement types and dose have no effect on tooth length.
+#####Analysis of two treatments with low/median/high dose on tooth length:
+```{r,eval=FALSE}
+Low<-subset(ToothGrowth,dose==0.5)
+t.test(len~supp,data=Low,paired=FALSE)
+Med<-subset(ToothGrowth,dose==1)
+t.test(len~supp,data=Med,paired=FALSE)
+High<-subset(ToothGrowth,dose==2)
+t.test(len~supp,data=High,paired=FALSE)
+```
+For low dose,P=0.006 which is smaller than 0.05, so different treantments do have an effect on tooth length when dose is low.For median dose, P=0.001 which is smaller than 0.05, so different treantments do have an effect on tooth length when dose is median.For high dose, P=0.96 which is much bigger than 0.05, so we fail to reject the hypothesis, and different treantments do not have an effect on tooth length when dose is high.
+
+##Conclution
+At low dosage (=0.5 or 1), OJ treatment yield a greater tooth growth than VC treatment. However, when the dosage is at a higher level (=2),  there showes no significant difference between the two treatments on tooth growth.
+
+#Appendix
+##Analysis results of two treatments with low/median/high dose on tooth length
+```{r}
+Low<-subset(ToothGrowth,dose==0.5)
+t.test(len~supp,data=Low,paired=FALSE)
+Med<-subset(ToothGrowth,dose==1)
+t.test(len~supp,data=Med,paired=FALSE)
+High<-subset(ToothGrowth,dose==2)
+t.test(len~supp,data=High,paired=FALSE)
+```

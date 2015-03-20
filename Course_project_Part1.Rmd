@@ -1,0 +1,48 @@
+---
+output: pdf_document
+---
+#Does Central Limit Theorem apply to Exponential Distribution?
+Ling Tian, Feb.2015
+
+An exponential distribution with rate lambda has mean of 1/lambda and standard deviation of 1/lambda. Set lambda=0.2. Investigate the distribution of averages of 40 exponentials wtih 1000 simulations.
+
+##Simulations
+To get the mean of 40 exponentials with 1000 simulations
+```{r}
+lambda<-0.2
+n<-40
+set.seed(55) ##to get reproducible results
+nosim<-1:1000
+means<-data.frame(mean_of_40=sapply(nosim,function(x){mean(rexp(n,lambda))}))
+head(means)
+```
+
+###Sample mean vs theoretical mean
+Sample mean 
+```{r}
+mean(means$mean_of_40)
+```
+The theoretical mean of the distribution is 1/lambda=5, sample mean is 5.036, which is very close to the theoretical mean of the distribution.
+
+###Sample variance vs theoretical variance
+```{r}
+var(means$mean_of_40)
+```
+Theoretical variance
+```{r}
+((1/lambda)/sqrt(40))^2
+```
+The sample variance is 0.619 while the theoretical variance 0.625, again very close.
+
+###Distribution is appoximately normal
+Sample distribution vs normal distributi
+```{r}
+library("ggplot2")
+ggplot(data=means, aes(x=mean_of_40))+geom_histogram(aes(y=..density..),binwidth=0.20,fill="#FFB3B3",color="black")+stat_function(fun=dnorm,arg=list(mean=5,sd=sd(means$mean_of_40)))+geom_vline(aes(xintercept=mean(means$mean_of_40,na.rm=T)), color="red",linetype="dashed",size=1)+ggtitle("Distribution of sample means vs Normal Distribution")
+```
+
+The shaded portion represents the distribution of the means of 1000 simulations of the 40 exponentials.Its mean is highlighted in red dash (falls slightly right to the value 5, which is the theoretical mean.) The black line shows the normal distribution with mean 5 and standard deviation 0.791. They appears overlaping so the simulated distribution is approximately normal.
+
+
+
+
