@@ -15,8 +15,9 @@ pm25<-subset(rawdata, select = -c(Pollutant))
 #To get a closer look at "scc" data set (Source_Classification_Code). "SCC", "Short.Name", "EI.Sector", "SCC.Level.One", "SCC.Level.Two", "SCC.Level.Three", "SCC.Level.Four" are the variables related to this study so only these variables are kept for further analysis.
 scc<-subset(rawscc, select = c(SCC, Short.Name, EI.Sector, SCC.Level.One, SCC.Level.Two, SCC.Level.Three, SCC.Level.Four))
 #============================================
-# Q5 How have emissions from motor vehicle sources changed from 1999–2008 in Baltimore City?
+# Q6 Compare emissions from motor vehicle sources in Baltimore City with emissions from motor vehicle sources in Los Angeles County, California (fips == "06037"). Which city has seen greater changes over time in motor vehicle emissions?
 library(dplyr)
+library(ggplot2)
 #To check for variables related to "motor vehicle" ("Veh" was used for searching) sources in scc data set.
 table(grepl("Veh", scc$Short.Name))#1185 (matches)
 table(grepl("Veh", scc$EI.Sector))#1138 
@@ -52,11 +53,20 @@ veh_baltimore_pm25<-pm25 %>%
         group_by(year) %>% #to gourp by year
         summarize(veh_baltimore_sum=sum(Emissions)) #sum of each year within the group
 
-barplot(veh_baltimore_pm25$veh_baltimore_sum, names.arg = veh_baltimore_pm25$year, main="PM2.5 from VEHICLE in Baltimore 1999 to 2008", xlab="Year", ylab="PM2.5" )
-#The above plot is about the PM2.5 emissions from Vehicle related sources in Baltimore from 1999 to 2008. As we can see, the emission droped by half from 1999 to 2002 following by a smooth decrease from 2002 to 2008.
+veh_LA_pm25<-pm25 %>% 
+        filter(SCC %in% SNrow_veh$SCC | SCC %in% EIrow_veh$SCC | SCC %in% ltwo_veh$SCC) %>% #to get rows only from "Veh" related sources
+        filter(fips == "06037") %>% #to get rows only from LA
+        group_by(year) %>% #to gourp by year
+        summarize(veh_LA_sum=sum(Emissions)) #sum of each year within the group
+
+par(mfrow=c(1,2), mar=c(5,5,2,1))
+barplot(veh_baltimore_pm25$veh_baltimore_sum, names.arg = veh_baltimore_pm25$year, main="PM2.5 from VEHICLE in Baltimore 1999-2008", xlab="Year", ylab="PM2.5" )
+barplot(veh_LA_pm25$veh_LA_sum, names.arg = veh_LA_pm25$year, main="PM2.5 from VEHICLE in LA 1999-2008", xlab="Year", ylab="PM2.5" )
+#The above plot is about the PM2.5 emissions from Vehicle related sources in Baltimore and in LA from 1999 to 2008. At first glance, the overal level of PM2.5 is much higher (almost 20 times higher) in LA (aorund 7000) than in Baltimore (below 400) over the 10-year period. To take a closer look, it has been noticed that in Baltimore, the emission started at 400 in year 1999 and droped by half by 2002. Then the level went smoothly between 2002 and 2005, following by a decrease to around 150 by the year of 2008 . One the other hand, the PM2.5 emission in LA starts at over 6000 in the year 1999 and had an increase over the flowing 6 years to over 7000. Fourtunately, the level droped back in 2008 to almost the same but slighly higher comparied with 10 years ago.
+
 #==============================================
 #Save plot in PNG file.
-dev.copy(png, file="plot5.png", width=480, height=480, units="px")
+dev.copy(png, file="plot6.png", width=980, height=580, units="px")
 dev.off()
 
 

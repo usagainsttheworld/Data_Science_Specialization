@@ -17,9 +17,8 @@ scc<-subset(rawscc, select = c(SCC, Short.Name, EI.Sector, SCC.Level.One, SCC.Le
 #============================================
 #Q3 Across the United States, how have emissions from coal combustion-related sources changed from 1999–2008?
 library(dplyr)
-library(ggplot2)
-#To check which variables are related to "Coal"
-table(grepl("Coal", scc$Short.Name))#230
+#To check which variables are related to "Coal" sources in scc data set
+table(grepl("Coal", scc$Short.Name))#230 (matches)
 table(grepl("Coal", scc$EI.Sector))#99
 table(grepl("Coal", scc$SCC.Level.One))
 table(grepl("Coal", scc$SCC.Level.Two))
@@ -72,19 +71,4 @@ dev.off()
 
 
 
-
-table(grepl("Veh", scc$Short.Name))
-
-FALSE  TRUE 
-10532  1185
-
-+1 of EI sector
-table(grepl("Vehicle", scc$EI.Sector))
-FALSE  TRUE 
-10579  1138 
-
-+309
-> table(grepl("Vehicle", scc$SCC.Level.Two))
-FALSE  TRUE 
-10265  1452 
 
