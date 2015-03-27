@@ -1,0 +1,1 @@
+Body Mass Index(BMI) is a measure of body fat based on height and weight. This small Shiny applicaiton is designed to calculate BMI based on the height and weight entered through the input boxes. The BMI value is than used to determine the tester's health status. A BMI of 25 or more is overweight, while the healthy range is 18.5 to 24.9. 
