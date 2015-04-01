@@ -39,6 +39,7 @@ mean(x)
 #Q10 Let the slope having fit Y as the outcome and X as the predictor be denoted as β1. Let the slope from fitting X as the outcome and Y as the predictor be denoted as γ1. Suppose that you divide β1 by γ1; in other words consider β1/γ1. What is this ratio always equal to?
 β1=Cor(Y,X)SD(Y)/SD(X) 
 γ1=Cor(Y,X)SD(X)/SD(Y)
+#=================================================================
 
 #Quiz2
 #Q1 Give a P-value for the two sided hypothesis test of whether β1 from a linear regression model is 0 or not.
@@ -92,9 +93,34 @@ fit4 <- lm(mpg ~ 1)
 fit <- lm(mpg ~ wt)
 anova(fit)
 anova(fit4)
+#=================================================================
 
+#Quiz 3
+#Q1 Consider the mtcars data set. Fit a model with mpg as the outcome that includes number of cylinders as a factor variable and weight as confounder. Give the adjusted estimate for the expected change in mpg comparing 8 cylinders to 4.
+data (mtcars)
+lm (mpg ~ factor(cyl) + wt, data = mtcars) #cyl8=-6.071, intercept is cyl4
 
+#Q2 Consider the mtcars data set. Fit a model with mpg as the outcome that includes number of cylinders as a factor variable and weight as a possible confounding variable. Compare the effect of 8 versus 4 cylinders on mpg for the adjusted and unadjusted by weight models. Here, adjusted means including the weight variable as a term in the regression model and unadjusted means the model without weight included. What can be said about the effect comparing 8 and 4 cylinders after looking at models with and without weight included?.
+lm1<-lm(mpg ~ factor(cyl), data = mtcars) 
+lm2<-lm(mpg ~ factor(cyl) + wt, data = mtcars) 
 
+#Q3 Consider the mtcars data set. Fit a model with mpg as the outcome that considers number of cylinders as a factor variable and weight as confounder. Now fit a second model with mpg as the outcome model that considers the interaction between number of cylinders (as a factor variable) and weight. Give the P-value for the likelihood ratio test comparing the two models and suggest a model using 0.05 as a type I error rate significance benchmark.
+library(lmtest)
+fit1 <- lm (mpg ~ factor(cyl) + wt, data = mtcars)
+fit2 <- lm (mpg ~ factor(cyl)*wt, data = mtcars)
+lrtest(fit1, fit2)
 
+#Q4 Consider the mtcars data set. Fit a model with mpg as the outcome that includes number of cylinders as a factor variable and weight inlcuded in the model as following. How is the wt coefficient interpretted?
+lm(mpg ~ I(wt * 0.5) + factor(cyl), data = mtcars)
 
+#Q5 Give the hat diagonal for the most influential point
+x <- c(0.586, 0.166, -0.042, -0.614, 11.72)
+y <- c(0.549, -0.026, -0.127, -0.751, 1.344)
+fit<-lm(y~x)
+hatvalues(fit)
 
+#Q6 Give the slope dfbeta for the point with the highest hat value.
+x <- c(0.586, 0.166, -0.042, -0.614, 11.72)
+y <- c(0.549, -0.026, -0.127, -0.751, 1.344)
+fit<-lm(y~x)
+dfbetas(fit)
