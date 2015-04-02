@@ -1,65 +1,108 @@
-#Is Automatic or Manual transmission better for MPG
+---
+output: pdf_document
+---
+#Is Automatic or Manual transmission better for MPG?
 
 ## Executive summary
+This analysis is about exploring the relatioship between a set of variables and Miles Per Gallon(MPG), particluarly the effects of transmission type on MPG. Based on the regresson models built on mtcars data set, the cars with manual transmission has better MPG (~2.9 increase) than the automatic transmission.
 
-## About the Data 
-
-Data is from mtcars data set. The data frame with 32 observations on 11 variables. By using ?mtcars, the  variables of the data set includes:
-[, 1]   mpg     Miles/(US) gallon
-[, 2]	cyl	Number of cylinders
-[, 3]	disp	Displacement (cu.in.)
-[, 4]	hp	Gross horsepower
-[, 5]	drat	Rear axle ratio
-[, 6]	wt	Weight (lb/1000)
-[, 7]	qsec	1/4 mile time
-[, 8]	vs	V/S
-[, 9]	am	Transmission (0 = automatic, 1 = manual)
-[,10]	gear	Number of forward gears
-[,11]	carb	Number of carburetors
-
-
-##Is an automatic or manual transmission better for MPG
+##Is an automatic or manual transmission better for MPG?
 
 Data Cleaning
 
 ```{r}
+library(datasets)
 data(mtcars)
 mydata<-mtcars
-# To convert the type of factor variables to factor 
-mydata$cyl <- as.factor(mydata$cyl)
-mydata$am <- as.factor(mydata$am)
-mydata$vs <- as.factor(mydata$vs)
-mydata$gear <- as.factor(mydata$gear)
+#To convert the type of factor variables to factor 
+mydata$cyl <- as.factor(mydata$cyl); mydata$am <- as.factor(mydata$am)
+mydata$vs <- as.factor(mydata$vs); mydata$gear <- as.factor(mydata$gear)
 mydata$carb <- as.factor(mydata$carb)
 ```
 
-#Perform a boxplot of Transmission type on MPG
+A boxplot was performed of Transmission type on MPG (see Appendix for the plot). From the plot, we can see that cars with manual transmission has a better MPG than the automatic transmission.
+
+##Quantify the MPG difference between automatic and manual transmissions
+
+###Single predictor regression 
+
+Model with only transmission ("am" variable) as predictor
 
 ```{r}
+fit_s <- lm(mpg ~ am, data = mydata)
+summary(fit_s)$coef
+```
+
+From the summary, we have noticed that there is a positive relationship between predictor manual transmissions (am1) and outcome MPG. The coefficient is 7.24 and significant (P<0.05). So it again confirms our previous finding that cars with manual transmission have better MPG than those with automatic transmissions (am0).
+
+###Multivariable predictor regression
+
+```{r}
+#Model with all variable as predictors
+fit_m <- lm(mpg ~., data = mydata)
+```
+
+Stepwise selection using stepAIC(), which performs stepwise model selection by exact AIC
+
+```{r, results='hide'}
+#Model with selected variables as predictors
+library(MASS)
+fit_AIC<- stepAIC (fit_m, direction = "both")
+fit_AIC$anova
+#The model we obtaind by stepwise selection is: mpg ~ wt + qsec + am
+```
+
+All-subsets regression Using leaps()
+
+```{r, results='hide'}
+#Models with selected variables as predictors
+library(leaps)
+fit_subsets<-regsubsets(mpg~., data=mydata, nbest=1)
+summary(fit_subsets)
+#The model we choice for further analysis is the 4 predictor model: mpg ~ wt + hp + am + qsec 
+```
+
+##Compairing Models
+
+```{r, results='hide'}
+attach(mydata)
+fit1 <-lm(mpg ~ am)
+fit2<-lm(mpg ~ wt + am + qsec)
+fit3<-lm(mpg ~ wt + hp + am + qsec)
+fit4<-lm(mpg ~ ., data = mydata)
+anova(fit1, fit2, fit3, fit4)
+detach(mydata)
+```
+
+Model2 (obtaind by Stepwise selection using stepAIC()) is the only one with significant p-values thus was selected as the final model. The summary is as follows:
+
+```{r}
+summary(fit2)$coef
+```
+
+##Conclution
+Estimate MPG = 9.6 + 2.9*am1 - 3.9*wt + 1.2*qsec. so the cars with manual transmission have MPG 2.9 higher than cars with automatic transmission.
+
+##Appendix
+
+Boxplot of Transmission type on MPG
+```{r}
+#"am" variable is the transmission type (0 = automatic, 1 = manual)
 boxplot(mpg ~ am, data = mydata, main="Effects of Transmission Type on MPG", xlab="Transmission", ylab="Miles Per Gallon" )
 legend ("topleft", inset=.05, c("0 : Automatic", "1 : Manual"))
 ```
 
-From the plot, we can see that cars with manual transmission has a better MPG than the automatic transmission.
-
-##Quantify the MPG difference between automatic and manual transmissions
-
-Model1 with transmission ("am" variable) as predictor
-
+Diagnostic Plots
 ```{r}
-fit1 <- lm(mpg ~ am, data = mydata)
-summary(fit1)$coef
+par(mfrow = c(2,2), mar = c(4,4,2,1))
+plot(fit_m)
 ```
 
-From the summary, we have noticed that there is a positive relationship between predictor manual transmissions (am1) and outcome MPG. The     coefficient is 7.24 and significant (P<0.05). So it again confirms our previous finding that cars with manual transmission have better MPG than those with automatic transmissions (am0).
 
-Model2 with all variables as predictior
-
+All-subsets regression Plot
 ```{r}
-fit2 <- lm(mpg ~., data = mydata)
-summary(fit2)$coef
+par(mfrow = c(1,1), mar = c(4,4,2,1))
+plot(fit_subsets, scale="r2")
 ```
-
-From the summary, we selected the variable with the smallest p-value, which are hp (p-value=0.09) and wt (p-value=0.09)
 
 
