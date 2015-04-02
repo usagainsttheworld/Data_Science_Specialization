@@ -1,0 +1,65 @@
+#Is Automatic or Manual transmission better for MPG
+
+## Executive summary
+
+## About the Data 
+
+Data is from mtcars data set. The data frame with 32 observations on 11 variables. By using ?mtcars, the  variables of the data set includes:
+[, 1]   mpg     Miles/(US) gallon
+[, 2]	cyl	Number of cylinders
+[, 3]	disp	Displacement (cu.in.)
+[, 4]	hp	Gross horsepower
+[, 5]	drat	Rear axle ratio
+[, 6]	wt	Weight (lb/1000)
+[, 7]	qsec	1/4 mile time
+[, 8]	vs	V/S
+[, 9]	am	Transmission (0 = automatic, 1 = manual)
+[,10]	gear	Number of forward gears
+[,11]	carb	Number of carburetors
+
+
+##Is an automatic or manual transmission better for MPG
+
+Data Cleaning
+
+```{r}
+data(mtcars)
+mydata<-mtcars
+# To convert the type of factor variables to factor 
+mydata$cyl <- as.factor(mydata$cyl)
+mydata$am <- as.factor(mydata$am)
+mydata$vs <- as.factor(mydata$vs)
+mydata$gear <- as.factor(mydata$gear)
+mydata$carb <- as.factor(mydata$carb)
+```
+
+#Perform a boxplot of Transmission type on MPG
+
+```{r}
+boxplot(mpg ~ am, data = mydata, main="Effects of Transmission Type on MPG", xlab="Transmission", ylab="Miles Per Gallon" )
+legend ("topleft", inset=.05, c("0 : Automatic", "1 : Manual"))
+```
+
+From the plot, we can see that cars with manual transmission has a better MPG than the automatic transmission.
+
+##Quantify the MPG difference between automatic and manual transmissions
+
+Model1 with transmission ("am" variable) as predictor
+
+```{r}
+fit1 <- lm(mpg ~ am, data = mydata)
+summary(fit1)$coef
+```
+
+From the summary, we have noticed that there is a positive relationship between predictor manual transmissions (am1) and outcome MPG. The     coefficient is 7.24 and significant (P<0.05). So it again confirms our previous finding that cars with manual transmission have better MPG than those with automatic transmissions (am0).
+
+Model2 with all variables as predictior
+
+```{r}
+fit2 <- lm(mpg ~., data = mydata)
+summary(fit2)$coef
+```
+
+From the summary, we selected the variable with the smallest p-value, which are hp (p-value=0.09) and wt (p-value=0.09)
+
+
