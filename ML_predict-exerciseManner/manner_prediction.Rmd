@@ -1,11 +1,16 @@
-Which exercise did they do?
-=============================================
+---
+output: html_document
+---
+#Which exercise did they do?
+
+##By Ling Tian
+
 The datasets are from a study with 5 classes (sitting-down, standing-up, standing, walking, and sitting) collected on 8 hours of activities of 4 healthy subjects. The goal of this project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. 
 
 ##Load training data set
 
 ```{r}
-setwd("~/Coursera/ML_predict-exerciseManner")
+setwd("~/Desktop/Coursera/ML_predict-exerciseManner")
 training_raw<-read.table("pml-training.csv", sep=",", na.string=c("NA",""), header=T)
 ```
 
